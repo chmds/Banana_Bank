@@ -1,17 +1,43 @@
 defmodule BananaBankWeb.UsersControllerTest do
   use BananaBankWeb.ConnCase
 
+  import Mox
+
   alias BananaBank.Users
   alias Users.User
 
+  setup do
+    params = %{
+      "name" => "Carlos",
+      "cep" => "18053220",
+      "email" => "carlos@frutas.com.br",
+      "password" => "147258"
+    }
+
+    body =  %{
+      "bairro" => "Conjunto Habitacional Júlio de Mesquita Filho",
+      "cep" => "18053-220",
+      "complemento" => "",
+      "ddd" => "15",
+      "estado" => "São Paulo",
+      "gia" => "6695",
+      "ibge" => "3552205",
+      "localidade" => "Sorocaba",
+      "logradouro" => "Rua Alberto Rodrigues Geraldes",
+      "regiao" => "Sudeste",
+      "siafi" => "7145",
+      "uf" => "SP",
+      "unidade" => ""
+    }
+
+    {:ok, %{user_params: params, body: body}}
+  end
+
   describe "create/2" do
-    test "Usuario criado com sucesso", %{conn: conn} do
-      params = %{
-        name: "Carlos",
-        cep: "12345678",
-        email: "carlos@frutas.com.br",
-        password: "147258"
-      }
+    test "Usuario criado com sucesso", %{conn: conn, body: body, user_params: params} do
+      expect(BananaBank.ViaCep.ClientMock, :call, fn "29560000" ->
+        {:ok, body}
+      end)
 
       response =
         conn
@@ -19,7 +45,7 @@ defmodule BananaBankWeb.UsersControllerTest do
         |> json_response(:created)  # Corrigido para :created
 
       assert %{
-        "data" => %{"cep" => "12345678", "email" => "carlos@frutas.com.br", "id" => _id, "name" => "Carlos"},
+        "data" => %{"cep" => "18053220", "email" => "carlos@frutas.com.br", "id" => _id, "name" => "Carlos"},
         "message" => "Usuario criado com sucesso"
       } = response
     end
@@ -31,6 +57,10 @@ defmodule BananaBankWeb.UsersControllerTest do
         email: "carlos@frutas.com.br",
         password: "123456"
       }
+
+      expect(BananaBank.ViaCep.ClientMock, :call, fn "12" ->
+        {:ok, ""}
+      end)
 
       response =
         conn
@@ -44,13 +74,10 @@ defmodule BananaBankWeb.UsersControllerTest do
   end
 
   describe "delete/2" do
-    test "Usuario deletado com sucesso", %{conn: conn} do
-      params = %{
-        name: "Carlos",
-        cep: "12345678",
-        email: "carlos@frutas.com.br",
-        password: "147258"
-      }
+    test "Usuario deletado com sucesso", %{conn: conn, body: body, user_params: params} do
+      expect(BananaBank.ViaCep.ClientMock, :call, fn "18053220" ->
+        {:ok, body}
+      end)
 
       {:ok, %User{id: id}} = Users.create(params)
 
@@ -59,7 +86,7 @@ defmodule BananaBankWeb.UsersControllerTest do
         |> detele(~p"/api/users/#{id}")
         |> json_response(:ok)
 
-      expected_response = %{"data" => %{"cep" => "12345678", "email" => "carlos@frutas.com.br", "id" => id, "name" => "Carlos"}}
+      expected_response = %{"data" => %{"cep" => "18053220", "email" => "carlos@frutas.com.br", "id" => id, "name" => "Carlos"}}
 
       assert response == expected_response
     end
