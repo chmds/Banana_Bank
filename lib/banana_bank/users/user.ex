@@ -2,6 +2,7 @@ defmodule BananaBank.Users.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias BananaBank.Accounts.Account
   alias Ecto.Changeset
 
   @requered_params_create [:name, :password, :email, :cep]
@@ -9,12 +10,14 @@ defmodule BananaBank.Users.User do
 
   schema "users" do
     field :name, :string
-    field :password, :string, virtual: true # Passa senha, como virtual
+    # Passa senha, como virtual
+    field :password, :string, virtual: true
     field :password_hash, :string
     field :email, :string
     field :cep, :string
+    has_one :account, Account
 
-    timestamps() #Usado para criar linhas automaticamente entre as tabelas no bd
+    timestamps()
   end
 
   def changeset(params) do
@@ -40,7 +43,7 @@ defmodule BananaBank.Users.User do
   end
 
   defp add_password_hash(%Changeset{valid?: true, changes: %{password: password}} = changeset) do
-      change(changeset, password_hash: Argon2.hash_pwd_salt(password))
+    change(changeset, password_hash: Argon2.hash_pwd_salt(password))
   end
 
   defp add_password_hash(changeset), do: changeset
