@@ -4,7 +4,9 @@ defmodule BananaBankWeb.UsersController do
   alias BananaBank.Users
   alias Users.User
 
-  action_fallback  BananaBankWeb.FallbackController
+  alias BananaBankWeb.Token
+
+  action_fallback BananaBankWeb.FallbackController
 
   def create(conn, params) do
     with {:ok, %User{} = user} <- Users.create(params) do
@@ -19,6 +21,17 @@ defmodule BananaBankWeb.UsersController do
       conn
       |> put_status(:ok)
       |> render(:delete, user: user)
+    end
+  end
+
+  def login(conn, params) do
+    with {:ok, %User{} = user} <- Users.login(params) do
+      token = Token.sign(user)
+
+      conn
+      # ok = status 200
+      |> put_status(:ok)
+      |> render(:login, token: token)
     end
   end
 
